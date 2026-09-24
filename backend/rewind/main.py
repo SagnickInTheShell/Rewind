@@ -30,17 +30,19 @@ def _include_routers(app: FastAPI) -> None:
     for name in ("videos", "venues", "analysis", "simulations", "validation", "demo"):
         try:
             mod = import_module(f"rewind.api.{name}")
-        except ModuleNotFoundError as exc:
-            if exc.name == f"rewind.api.{name}":
-                continue
-            raise
+        except (ModuleNotFoundError, ImportError) as exc:
+            import logging
+            logging.getLogger(__name__).warning(
+                "skipping /api/%s router (missing dependency: %s)", name, exc,
+            )
+            continue
         app.include_router(mod.router, prefix="/api")
     try:
         ws = import_module("rewind.api.ws")
         app.include_router(ws.router)
-    except ModuleNotFoundError as exc:
-        if exc.name != "rewind.api.ws":
-            raise
+    except (ModuleNotFoundError, ImportError) as exc:
+        import logging
+        logging.getLogger(__name__).warning("skipping ws router (%s)", exc)
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:

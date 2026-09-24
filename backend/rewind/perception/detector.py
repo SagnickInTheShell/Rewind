@@ -133,8 +133,13 @@ def build_detector(kind: str, *, model: str, conf: float, imgsz: int, batch: int
                    blob_radius_px: float = 8.0, models_dir: Path | None = None) -> Detector:
     if kind == "blob":
         return BlobDetector(expected_radius_px=blob_radius_px)
-    weights = resolve_yolo_weights(model, models_dir) if models_dir is not None else model
-    return YoloDetector(model=weights, conf=conf, imgsz=imgsz, batch=batch)
+    # Try YOLO, fall back to blob if ultralytics is not installed
+    try:
+        weights = resolve_yolo_weights(model, models_dir) if models_dir is not None else model
+        return YoloDetector(model=weights, conf=conf, imgsz=imgsz, batch=batch)
+    except (ImportError, ModuleNotFoundError) as exc:
+        log.warning("YOLO unavailable (%s); falling back to blob detector", exc)
+        return BlobDetector(expected_radius_px=blob_radius_px)
 
 
 def ground_points(bboxes: np.ndarray, camera_view: str) -> np.ndarray:

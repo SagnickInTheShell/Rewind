@@ -89,11 +89,93 @@ class DeepSortTracker:
         return out
 
 
+class CentroidTracker:
+    """Lightweight Euclidean distance tracker for bounding boxes (fallback when supervision is unavailable)."""
+
+    name = "centroid"
+
+    def __init__(self, frame_rate: float = 5.0, max_distance_px: float = 60.0, max_disappeared: int = 10) -> None:
+        self.frame_rate = frame_rate
+        self.max_distance_px = max_distance_px
+        self.max_disappeared = max_disappeared
+        self.next_id = 1
+        self.tracks: dict[int, tuple[float, float, float, float]] = {}  # id -> xyxy
+        self.disappeared: dict[int, int] = {}
+
+    def update(self, detections: Sequence[Detection], frame: np.ndarray | None = None) -> TrackOutput:
+        if not detections:
+            for tid in list(self.disappeared.keys()):
+                self.disappeared[tid] += 1
+                if self.disappeared[tid] > self.max_disappeared:
+                    del self.tracks[tid]
+                    del self.disappeared[tid]
+            return []
+
+        boxes = [d.bbox_xyxy for d in detections]
+        if not self.tracks:
+            out: TrackOutput = []
+            for b in boxes:
+                tid = self.next_id
+                self.next_id += 1
+                self.tracks[tid] = b
+                self.disappeared[tid] = 0
+                out.append((str(tid), b))
+            return out
+
+        # Match existing tracks to new detections by center distance
+        track_ids = list(self.tracks.keys())
+        track_centers = np.array([[(self.tracks[i][0] + self.tracks[i][2]) / 2, (self.tracks[i][1] + self.tracks[i][3]) / 2] for i in track_ids])
+        det_centers = np.array([[(b[0] + b[2]) / 2, (b[1] + b[3]) / 2] for b in boxes])
+
+        # Pairwise distance matrix
+        dists = np.linalg.norm(track_centers[:, None, :] - det_centers[None, :, :], axis=2)
+        used_tracks = set()
+        used_dets = set()
+        out = []
+
+        if dists.size > 0:
+            flat_indices = np.argsort(dists, axis=None)
+            for flat_idx in flat_indices:
+                t_idx, d_idx = np.unravel_index(flat_idx, dists.shape)
+                if t_idx in used_tracks or d_idx in used_dets:
+                    continue
+                if dists[t_idx, d_idx] > self.max_distance_px:
+                    break
+                tid = track_ids[t_idx]
+                self.tracks[tid] = boxes[d_idx]
+                self.disappeared[tid] = 0
+                used_tracks.add(t_idx)
+                used_dets.add(d_idx)
+                out.append((str(tid), boxes[d_idx]))
+
+        for t_idx, tid in enumerate(track_ids):
+            if t_idx not in used_tracks:
+                self.disappeared[tid] = self.disappeared.get(tid, 0) + 1
+                if self.disappeared[tid] > self.max_disappeared:
+                    del self.tracks[tid]
+                    del self.disappeared[tid]
+
+        for d_idx, b in enumerate(boxes):
+            if d_idx not in used_dets:
+                tid = self.next_id
+                self.next_id += 1
+                self.tracks[tid] = b
+                self.disappeared[tid] = 0
+                out.append((str(tid), b))
+
+        return out
+
+
 def build_tracker(kind: str, frame_rate: float) -> Tracker:
-    """Factory with graceful fallback to ByteTrack when DeepSORT is unavailable."""
+    """Factory with graceful fallback to ByteTrack and CentroidTracker."""
     if kind == "deepsort":
         try:
             return DeepSortTracker(frame_rate=frame_rate)
-        except NotImplementedError as exc:
+        except (NotImplementedError, ImportError) as exc:
             log.warning("DeepSORT unavailable, falling back to ByteTrack: %s", exc)
-    return ByteTrackTracker(frame_rate=frame_rate)
+    try:
+        return ByteTrackTracker(frame_rate=frame_rate)
+    except (ImportError, ModuleNotFoundError, Exception) as exc:
+        log.warning("ByteTrack unavailable (%s), falling back to CentroidTracker", exc)
+        return CentroidTracker(frame_rate=frame_rate)
+

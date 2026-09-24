@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import mimetypes
 import re
@@ -17,7 +18,6 @@ from fastapi.responses import Response, StreamingResponse
 from rewind.api.deps import settings, store
 from rewind.api.errors import ApiError, not_found
 from rewind.ingest.video_reader import VideoOpenError, VideoReader, probe
-from rewind.pipeline.analyze import save_video_meta
 from rewind.privacy import blur_heads
 from rewind.schemas.video import VideoMeta
 from rewind.storage.run_store import read_model
@@ -55,7 +55,9 @@ async def upload_video(file: UploadFile = File(...),
     except VideoOpenError as exc:
         dst.unlink(missing_ok=True)
         raise ApiError(422, "bad_video", str(exc)) from exc
-    save_video_meta(st, meta)
+    st.video_meta_path(meta.video_id).write_text(
+        json.dumps(meta.model_dump(), indent=2), encoding="utf-8"
+    )
     log.info("video uploaded", extra={"kv": {"video_id": video_id, "bytes": size}})
     return meta
 

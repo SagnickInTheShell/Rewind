@@ -24,7 +24,7 @@ DEFAULT_CONFIG = BACKEND_DIR / "config" / "default.yaml"
 
 class AppSettings(BaseModel):
     data_dir: str = "data"
-    cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
+    cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5176"])
     log_level: str = "INFO"
     blur_heads_in_exports: bool = False
     max_upload_mb: int = 2048

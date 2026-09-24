@@ -123,6 +123,7 @@ export function uploadVideo(
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", `${API_BASE}/videos`);
+    xhr.timeout = 5 * 60 * 1000; // 5 minute timeout for large uploads
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) opts.onProgress?.(e.loaded / e.total);
     };
@@ -130,9 +131,10 @@ export function uploadVideo(
       const body: unknown = xhr.responseText ? JSON.parse(xhr.responseText) : null;
       if (xhr.status >= 200 && xhr.status < 300) resolve(body as VideoMeta);
       else if (isErrorBody(body)) reject(new ApiError(xhr.status, body.error.code, body.error.message, body.error.detail));
-      else reject(new ApiError(xhr.status, "http_error", xhr.statusText));
+      else reject(new ApiError(xhr.status, "http_error", xhr.statusText || `Server returned ${xhr.status}`));
     };
-    xhr.onerror = () => reject(new ApiError(0, "network", "Upload failed (network error)"));
+    xhr.onerror = () => reject(new ApiError(0, "network", "Upload failed — could not connect to backend. Make sure the backend server is running."));
+    xhr.ontimeout = () => reject(new ApiError(0, "timeout", "Upload timed out — the file may be too large or the server is unresponsive."));
     const form = new FormData();
     form.append("file", file);
     form.append("synthetic", String(Boolean(opts.synthetic)));
