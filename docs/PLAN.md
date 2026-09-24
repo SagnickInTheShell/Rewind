@@ -90,3 +90,47 @@ Each phase ends with its acceptance checks, a report, and a commit (`phase-N: ..
   - Backend: 25 passed (JSON round-trip for every contract, bounds, intervention validation, rejection of interventions before `t0`).
   - Frontend: 10 passed (fixture rendering, colour mapping, time formatting, twin transform).
 - **Additive fields beyond Section 5:** `VideoMeta.synthetic`, `ScenarioResult.name` and `interventions`, and ValidationReport UI context (`calibration_window`, `validation_window`, `worst_zone`, observed/simulated series). Recorded in DECISIONS.md.
+
+### Phase 2 — Ingest, calibration, venue ✅
+- **Built:**
+  - `VideoReader`: timestamp-based sampling (robust to variable frame rate), resizing to `max_width` with the scale kept, time-window reads.
+  - `probe` → `VideoMeta`.
+  - Homography: fit with RANSAC when there are more than 4 points; clear errors for fewer than 4 points or degenerate input; vectorised pixel↔world; `scale_homography` for resized frames; zone masks via `fillPoly`; exact per-pixel ground area from the Jacobian (`|det H| / w³`).
+  - Venue graph (networkx):
+    - Zones plus `OUTSIDE`; merged parallel portals; capacity = width × specific flow.
+    - Queries: upstream, downstream, neighbours, outgoing capacity, exit and entry portals, nearest portal.
+    - Congestion-weighted routing with an optional `via` zone; `apply_interventions` for portal changes at time `t`.
+  - Venue validator: unknown zones, uniqueness, reachability from sources, source→exit, sink exit portals, portal-on-boundary within 0.2 m, calibration of at least 4 points.
+  - Geometry helpers: walls including closed portals, vectorised zone locator, Poisson-disk sampling that relaxes spacing when overfull, portal normals.
+  - Demo venue builder, `data/venues/demo_venue.json` and `data/venues/README.md`.
+- **Tests:** 29 new, all passing.
+  - Homography round trip < 0.5 px; known-square area and perspective area within 5 %.
+  - Every venue validation error path; demo JSON matches the builder.
+  - Routing, Gate C opening, congestion diversion, widen capacity, zone lookup, sampling.
+  - Video sampling and time windows.
+- **Decisions:**
+  - Calibration image points are in original video pixels.
+  - The demo calibration matches the synthetic top-down camera (32 px/m).
+
+### Phase 3 — Perception ✅
+- **Built:**
+  - `YoloDetector`: YOLOv8, person class only, batched on GPU with FP16. Weights are fetched into `data/models`.
+  - `BlobDetector` for synthetic top-down renders (D7).
+  - `Tracker` protocol with `ByteTrackTracker` (supervision) and `DeepSortTracker` (optional `deep-sort-realtime`; falls back to ByteTrack).
+  - Trajectories: ground point → world → Savitzky–Golay (5, 2) → finite-difference velocity; drops tracks under 1 s; speeds clipped at 4 m/s; zone assignment with shapely prepared geometries.
+  - CSRNet (VGG-16 front end with 10 convs, dilated back end, 1×1 output). The loader handles `module.` prefixes and `state_dict` wrappers. Upsampling preserves the sum.
+  - KDE fallback: normalised Gaussians at head points, σ ∝ bbox height, correct at frame edges.
+  - Farneback flow → world velocities on an 8 px grid, masked to occupied cells, with per-zone mean \|curl\|.
+  - Hybrid fusion: blend weight, fused count, velocity-source switch.
+  - Overlay index and `GET /api/runs/{id}/overlay`.
+  - Privacy `blur_heads` (top 25 % of each bbox).
+  - Minimal scripted synthetic renderer: `rewind/synthetic/{scripted,render}.py` and `scripts/render_synthetic_video.py`.
+  - First stages of `pipeline/analyze.py` with artefact caching.
+- **Acceptance:**
+  - On a 30 s synthetic clip (151 processed frames), detections equal ground truth (12, 20 and 45 people at t = 10, 20 and 28 s). KDE map counts are within ±1.4 of the detections. Tracks give a 1.22 m/s southward median. `tracks`, `density_zone` and `flow_zone` Parquet files are written.
+  - The overlay endpoint returns tracks, 9 zones and a heatmap. With no weights, the run records `density: kde`.
+  - Timings (RTX 3050): blob detect+track 13 s, density 3 s, flow 8 s for 30 s of video.
+- **Tests:** 72 backend passing. They cover perception units (KDE, CSRNet, blob counts, YOLO on `bus.jpg`, ByteTrack ID stability, trajectories, flow translation recovery, fusion, blur) and an integration test (8 s clip → artefacts, accuracy against ground truth, overlay API, cached rerun).
+- **Known issues:**
+  - The CSRNet path is verified only with random weights, because no licensed weights are bundled.
+  - YOLO accuracy on real footage depends on the camera; see `data/models/README.md`.
