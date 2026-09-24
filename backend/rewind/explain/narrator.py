@@ -135,12 +135,17 @@ class Narrator:
             return (f"Modelled risk peaked at {peak_state} in {self.zone_label(peak_zone or '')} at "
                     f"{fmt_clock(peak_time)}; no clear causal chain was identified.")
         s1 = (f"The escalation appears to have started in {self.zone_label(origin_zone)} at {fmt_clock(origin_time)}"
-              f" with {(origin_title or 'a change in crowd dynamics').lower()}.")
+              f" with {_decap(origin_title or 'a change in crowd dynamics')}.")
         mid = [c for c in chain_titles[1:-1]][:3]
-        s2 = f" It then developed through {', '.join(m.lower() for m in mid)}." if mid else ""
+        s2 = f" It then developed through {', '.join(_decap(m) for m in mid)}." if mid else ""
         s3 = (f" Modelled risk peaked at {peak_state} in {self.zone_label(peak_zone or origin_zone)} at "
               f"{fmt_clock(peak_time)}.")
         return s1 + s2 + s3
+
+
+def _decap(s: str) -> str:
+    """Lower-case the first word unless it is a proper noun (Zone/Gate names)."""
+    return s if s.startswith(("Zone", "Gate")) else s[:1].lower() + s[1:]
 
 
 def _capitalise(s: str) -> str:

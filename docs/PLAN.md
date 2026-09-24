@@ -144,7 +144,7 @@ Each phase ends with its acceptance checks, a report, and a commit (`phase-N: ..
   - Vector-field tests: uniform flow gives entropy 0 and counterflow 0; 50/50 opposing streams give counterflow ≈ 0.5; random directions give entropy ≈ 1.
   - Hypothesis property tests keep entropy and counterflow within 0..1.
   - The 30 s clip gives `features.parquet` with 270 rows (9 zones × 30 s). A2 inflow ≈ 3.5–4 p/s against a scripted 4.2 p/s.
-- **Tests:** 89 backend passing.
+- **Tests:** 87 backend passing.
 - **Known issue:** `mypy` reports 2 forward references to `run_risk` and `run_reconstruction` until Phases 5–6 land.
 
 ### Phase 5 — Physics risk, states, explanations ✅
@@ -161,4 +161,13 @@ Each phase ends with its acceptance checks, a report, and a commit (`phase-N: ..
   - Noisy scores around a threshold give ≤ 2 state changes, against 22+ without hysteresis and debounce.
   - Narratives exist for every (t, zone), for example: "Modelled risk in Zone B2 (near Gate B) is CRITICAL, mainly because crowd pressure … while density climbed from 4.3 to 5.1 people/m². Bottleneck pressure on the way out towards Gate B is an estimated 2.1× its capacity."
   - A language test scans the frontend, README and docs for Section 13 banned phrases.
-- **Tests:** 130 backend passing.
+- **Tests:** 127 backend passing.
+
+### Phase 6 — Reconstruction ✅
+- **Built:**
+  - `event_detector.py`: all 10 event types with the Section 7.11 triggers, run detection with minimum durations, rolling least-squares slopes, duplicate merging, and evidence dicts.
+  - `causal_chain.py`: cause-type matrix, zone relation (flow plus spill-back, D24), weighted time-ordered DAG, highest-weight path to PEAK_RISK, `caused_by` filling.
+  - `timeline.py`: `IncidentTimeline` with a narrated 2–3 sentence summary.
+  - Analysis stage `reconstruction` → `timeline.json`.
+- **Acceptance:** a hand-built escalation (surge at Gate A t = 70 → bottleneck at Gate B → B2 density thresholds → counterflow → instability → CRITICAL) reconstructs the expected ordered chain: ENTRY_SURGE(A2) → BOTTLENECK(C2) → … → RISK_STATE_CHANGE(B2, CRITICAL) → PEAK_RISK(B2). The origin is A2 at 1:10, and the summary names the origin and the peak.
+- **Tests:** 133 backend passing.

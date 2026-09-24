@@ -49,3 +49,12 @@ def run_risk(store: RunStore, s: Settings, run_id: str, venue: Venue, meta: RunM
     narrator = Narrator(venue, s)
     store.write_df(run_id, "explanations", physics_explanations(features, risk_df, narrator, s))
     meta.methods["risk"] = label
+
+
+def run_reconstruction(store: RunStore, s: Settings, run_id: str, venue: Venue) -> None:
+    from rewind.reconstruction.timeline import build_timeline
+
+    graph = VenueGraph(venue, s.features.specific_flow_p_per_m_s)
+    tl = build_timeline(run_id, store.read_df(run_id, "features"), store.read_df(run_id, "risk"),
+                        store.read_df(run_id, "global_risk"), graph, s)
+    write_json(store.path(run_id, "timeline"), tl)
