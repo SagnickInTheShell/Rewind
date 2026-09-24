@@ -1,7 +1,7 @@
 """Render a synthetic top-down crowd video of the demo venue (clearly labelled SYNTHETIC).
 
 Usage:
-    python scripts/render_synthetic_video.py --out data/videos/synthetic_demo.webm --duration 180
+    python scripts/render_synthetic_video.py --out data/videos/synthetic_demo.mp4 --duration 180
     python scripts/render_synthetic_video.py --engine social_force --duration 180
 
 Engines:
@@ -28,7 +28,7 @@ log = logging.getLogger("render_synthetic_video")
 
 def main(argv: list[str] | None = None) -> Path:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--out", type=Path, default=ROOT / "data" / "videos" / "synthetic_demo.webm")
+    ap.add_argument("--out", type=Path, default=ROOT / "data" / "videos" / "synthetic_demo.mp4")
     ap.add_argument("--duration", type=float, default=180.0)
     ap.add_argument("--fps", type=float, default=25.0)
     ap.add_argument("--seed", type=int, default=0)

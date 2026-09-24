@@ -16,7 +16,7 @@ from tests.helpers import install_clip, render_clip
 
 @pytest.fixture(scope="session")
 def clip(tmp_path_factory: pytest.TempPathFactory) -> Path:
-    return render_clip(tmp_path_factory.mktemp("clips") / "clip.webm", duration=8.0)
+    return render_clip(tmp_path_factory.mktemp("clips") / "clip.mp4", duration=8.0)
 
 
 async def test_perception_stages_produce_artefacts_and_overlay(clip: Path) -> None:

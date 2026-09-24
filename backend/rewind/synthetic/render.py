@@ -1,7 +1,9 @@
 """Render crowd trajectories of the demo venue as a top-down synthetic video.
 
 People are drawn as saturated discs on a desaturated grey floor so the classical blob detector can
-find them. The output video is VP8/WebM (plays in browsers and OpenCV); a ground-truth sidecar
+find them. The output is H.264 MP4 (``+faststart``, via the ffmpeg binary bundled with
+``imageio-ffmpeg``) so it plays in every browser; if that binary is unavailable it falls back to
+OpenCV's VP8/WebM writer (use a ``.webm`` path then). A ground-truth sidecar
 (``<name>.gt.parquet``: t, agent_id, x, y) is written next to it for perception accuracy tests.
 """
 
@@ -13,6 +15,7 @@ import logging
 from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import cv2
 import numpy as np
@@ -85,26 +88,59 @@ def draw_frame(bg: np.ndarray, snap: Snapshot) -> np.ndarray:
     return img
 
 
+class _FrameSink:
+    """H.264 via imageio-ffmpeg when available, else OpenCV VP8/WebM."""
+
+    def __init__(self, out_path: Path, fps: float) -> None:
+        self._gen: Any = None
+        self._cv: cv2.VideoWriter | None = None
+        if out_path.suffix.lower() == ".mp4":
+            try:
+                import imageio_ffmpeg
+
+                self._gen = imageio_ffmpeg.write_frames(
+                    str(out_path), FRAME_SIZE, fps=fps, codec="libx264", pix_fmt_out="yuv420p", quality=None,
+                    macro_block_size=8, ffmpeg_log_level="error",
+                    output_params=["-crf", "23", "-preset", "veryfast", "-movflags", "+faststart"])
+                self._gen.send(None)
+                return
+            except Exception as exc:  # pragma: no cover - depends on the environment
+                raise RuntimeError(f"H.264 writer unavailable ({exc}); use a .webm output path") from exc
+        self._cv = cv2.VideoWriter(str(out_path), cv2.VideoWriter.fourcc(*"VP80"), fps, FRAME_SIZE)
+        if not self._cv.isOpened():
+            raise RuntimeError("OpenCV VP8 writer unavailable")
+
+    def write(self, bgr: np.ndarray) -> None:
+        if self._gen is not None:
+            self._gen.send(np.ascontiguousarray(bgr[:, :, ::-1]))
+        elif self._cv is not None:
+            self._cv.write(bgr)
+
+    def close(self) -> None:
+        if self._gen is not None:
+            self._gen.close()
+        if self._cv is not None:
+            self._cv.release()
+
+
 def write_video(snapshots: Iterator[Snapshot], venue: Venue, out_path: Path, fps: float = 25.0,
                 portal_open: dict[str, bool] | None = None) -> dict[str, object]:
-    """Render snapshots (one per output frame) to ``out_path`` (.webm) plus sidecars."""
+    """Render snapshots (one per output frame) to ``out_path`` (.mp4 or .webm) plus sidecars."""
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     bg = static_background(venue, portal_open)
-    writer = cv2.VideoWriter(str(out_path), cv2.VideoWriter.fourcc(*"VP80"), fps, FRAME_SIZE)
-    if not writer.isOpened():
-        raise RuntimeError("OpenCV VP8 writer unavailable")
+    sink = _FrameSink(out_path, fps)
     gt: list[pd.DataFrame] = []
     n = 0
     last_t = 0.0
     try:
         for snap in snapshots:
-            writer.write(draw_frame(bg, snap))
+            sink.write(draw_frame(bg, snap))
             gt.append(pd.DataFrame({"t": snap.t, "agent_id": snap.ids, "x": snap.xy[:, 0], "y": snap.xy[:, 1]}))
             n += 1
             last_t = snap.t
     finally:
-        writer.release()
+        sink.close()
     gt_df = pd.concat(gt, ignore_index=True) if gt else pd.DataFrame(columns=["t", "agent_id", "x", "y"])
     gt_df.to_parquet(out_path.with_suffix(".gt.parquet"), index=False)
     info = {"synthetic": True, "frames": n, "duration_s": last_t, "fps": fps, "venue_id": venue.venue_id}

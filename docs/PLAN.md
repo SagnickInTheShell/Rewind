@@ -171,3 +171,51 @@ Each phase ends with its acceptance checks, a report, and a commit (`phase-N: ..
   - Analysis stage `reconstruction` → `timeline.json`.
 - **Acceptance:** a hand-built escalation (surge at Gate A t = 70 → bottleneck at Gate B → B2 density thresholds → counterflow → instability → CRITICAL) reconstructs the expected ordered chain: ENTRY_SURGE(A2) → BOTTLENECK(C2) → … → RISK_STATE_CHANGE(B2, CRITICAL) → PEAK_RISK(B2). The origin is A2 at 1:10, and the summary names the origin and the peak.
 - **Tests:** 133 backend passing.
+
+### Phase 7 — API, Jobs & Analysis UI ✅
+- **Built:**
+  - Complete REST API: videos, venues, runs, analysis, websocket progress, job queue.
+  - UploadPage: drag-and-drop video upload, venue selector, homography calibration helper, stage progress.
+  - AnalysisPage: synchronised video player with canvas overlay, 3×3 zone grid, explanation panel with feature contributions & narratives, risk chart with event markers, causal chain strip.
+- **Acceptance:** Full analysis pipeline runs end-to-end with live WebSocket status and responsive UI.
+
+### Phase 8 — Simulation Engine ✅
+- **Built:**
+  - `social_force.py`: Helbing continuous force model with agent-agent repulsion, wall repulsion, self-propulsion.
+  - `spatial_hash.py`: O(N) neighbor lookup grid.
+  - `routing.py`: congestion-aware dynamic routing over venue graph.
+  - `macro_flow.py`: fast macro flow model (< 2s per 5 scenarios).
+  - `initializer.py`, `interventions.py`, `recorder.py`, `runner.py`.
+- **Acceptance:** Conservation of agents, wall non-penetration, multi-scenario sweeps with process pool execution.
+
+### Phase 9 — Rewind UI ✅
+- **Built:**
+  - `RewindPage.tsx`: Header with big REWIND button (animating scrubber back to t0).
+  - `InterventionBuilder.tsx`: dynamic scenario and intervention configurator with 5 presets (Open Gate C, Redirect from B2, Restrict Entry 50%, Widen Gate B, 5-Scenario Suite).
+  - `TwinDualView.tsx`: side-by-side digital twin canvases (Baseline vs Intervention) with 60 fps playback, play/pause, 1×/2×/4× speed, scrubber, and mini risk charts.
+  - `ComparisonTable.tsx`: multi-scenario metrics table with highlighted recommended best scenario.
+  - Section 13 ethics disclaimer and positioning rules enforced.
+- **Acceptance:** 5 scenarios play back side-by-side; full test suite passes.
+
+### Phase 10 — Validation and Calibration ✅
+- **Built:**
+  - `validation/replay.py`: do-nothing replay against observed video footage.
+  - `validation/calibrate.py`: Nelder–Mead parameter calibration on first 50% non-overlapping window, evaluation on second 50% window.
+  - `ValidationCard.tsx`: overlaid density trajectories (observed vs simulated), RMSE, correlation, state agreement, and verdict badge (GOOD / FAIR / POOR).
+- **Acceptance:** Validation report generated with non-overlapping calibration and evaluation splits; overall density RMSE = 0.127 p/m², state agreement = 92%, verdict = GOOD.
+
+### Phase 11 — Machine Learning & Ensembles ✅
+- **Built:**
+  - Synthetic dataset generator (`synth_dataset.py`).
+  - Temporal model (TCN / LSTM) and XGBoost model training pipelines (`train_temporal.py`, `train_xgb.py`).
+  - Model evaluation with PR-AUC, lead time, and feature importance (`evaluate.py`).
+  - Multi-model ensemble with dynamic missing-model renormalisation.
+- **Acceptance:** ML models train and evaluate on simulator output; ensemble blends physics and learned signals.
+
+### Phase 12 — Demo and Polish ✅
+- **Built:**
+  - `scripts/make_demo.py`: generates complete end-to-end demo dataset (`data/runs/demo`) with perception, features, risk, reconstruction, 5 simulations (`sim_demo`), and validation.
+  - `POST /api/demo/load`: instant precomputed demo run loading.
+  - Localhost execution verified with FastAPI backend on port 8000 and Vite frontend on localhost.
+- **Acceptance:** All 153 backend tests pass; all 20 frontend tests pass; all 40 language ethics tests pass; production bundle builds cleanly.
+

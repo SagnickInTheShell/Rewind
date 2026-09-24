@@ -58,3 +58,14 @@ def row_to_explanation(row: dict[str, Any]) -> Explanation:
     return Explanation(t=float(row["t"]), zone_id=str(row["zone_id"]), score=float(row["score"]),
                        state=row["state"], method=row["method"], narrative=str(row["narrative"]),
                        contributions=[Contribution.model_validate(c) for c in json.loads(row["contributions"])])
+
+
+def shap_explanation(store: Any, s: Settings, run_id: str, t: float, zone: str) -> Explanation | None:
+    """SHAP (TreeExplainer) explanation of the XGBoost score, or None when the model is not trained."""
+    if not (s.models_dir / "xgb.json").exists():
+        return None
+    import importlib
+
+    mod = importlib.import_module("rewind.risk.xgb_model")
+    result: Explanation | None = mod.shap_explanation_for_run(store, s, run_id, t, zone)
+    return result

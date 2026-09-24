@@ -12,7 +12,8 @@ describe("App shell", () => {
         </MemoryRouter>
       </QueryClientProvider>,
     );
-    expect(screen.getByText("REWIND")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /upload footage/i })).toBeInTheDocument();
+    expect(screen.getByText("RE")).toBeInTheDocument();
+    expect(screen.getByText("WIND")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /from footage to/i })).toBeInTheDocument();
   });
 });

@@ -15,6 +15,8 @@ from rewind.schemas.venue import Venue
 from rewind.settings import Settings
 from rewind.venue.graph import VenueGraph
 
+NEGLIGIBLE_CONTRIBUTION = 0.01  # contributions below this are not named in narratives
+
 BANNED_PHRASES = ("predicts stampedes", "prevents disasters", "would have saved", "prevent disasters",
                   "predict stampedes", "will prevent", "guarantees safety")
 
@@ -101,7 +103,7 @@ class Narrator:
             head = f"Modelled risk in {label} fell to {state}"
         else:
             head = f"Modelled risk in {label} is {state}"
-        top = [f for f, c in ranked_features if c > 1e-3][:2]
+        top = [f for f, c in ranked_features if c > NEGLIGIBLE_CONTRIBUTION][:2]
         if not top:
             return f"{head}; no crowd-dynamics indicator appears elevated."
         phrases = [self.feature_phrase(f, values_past.get(f, 0.0), values_now.get(f, 0.0)) for f in top]

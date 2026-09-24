@@ -39,7 +39,8 @@ def test_score_bounds_and_saturation() -> None:
 @pytest.mark.parametrize("feature", list(R.weights))
 def test_monotone_in_each_feature(feature: str) -> None:
     vals = np.linspace(0, 2 * R.norm[feature], 30)
-    scores = [score_one(feat_row(**{feature: v}), R)[0] for v in vals]
+    base = {"density": 2.0} if feature != "density" else {}  # occupied zone (motion features are gated)
+    scores = [score_one(feat_row(**{**base, feature: v}), R)[0] for v in vals]
     assert all(b >= a - 1e-12 for a, b in pairwise(scores))
     assert scores[-1] > scores[0]
 
@@ -147,3 +148,9 @@ def test_narrator_phrases() -> None:
     assert "1.7×" in txt
     assert n.trend("density", 3.0, 3.05) == "stable"
     assert check_language("This predicts stampedes") == ["predicts stampedes"]
+
+
+def test_motion_features_gated_by_occupancy() -> None:
+    empty, _ = score_one(feat_row(density=0.01, counterflow_index=0.6, flow_instability=1.0), R)
+    busy, _ = score_one(feat_row(density=2.0, counterflow_index=0.6, flow_instability=1.0), R)
+    assert empty < 0.01 < busy

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import secrets
 import shutil
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, TypeVar
@@ -46,12 +47,24 @@ def now_iso() -> str:
     return datetime.now(UTC).isoformat(timespec="seconds")
 
 
+def _replace(tmp: Path, path: Path, attempts: int = 20) -> None:
+    """Atomic replace, retrying briefly on Windows when a reader holds the target open."""
+    for i in range(attempts):
+        try:
+            tmp.replace(path)
+            return
+        except PermissionError:
+            if i == attempts - 1:
+                raise
+            time.sleep(0.05)
+
+
 def write_json(path: Path, obj: BaseModel | dict[str, Any] | list[Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(path.suffix + ".tmp")
     text = obj.model_dump_json(indent=2) if isinstance(obj, BaseModel) else json.dumps(obj, indent=2)
     tmp.write_text(text, encoding="utf-8")
-    tmp.replace(path)
+    _replace(tmp, path)
 
 
 def read_model(path: Path, model: type[M]) -> M:
@@ -62,7 +75,7 @@ def write_parquet(path: Path, df: pd.DataFrame) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(".tmp.parquet")
     df.to_parquet(tmp, index=False)
-    tmp.replace(path)
+    _replace(tmp, path)
 
 
 class RunStore:
@@ -73,8 +86,8 @@ class RunStore:
 
     # ---- videos -------------------------------------------------------------------------
     def video_path(self, video_id: str) -> Path:
-        matches = list(self.s.videos_dir.glob(f"{video_id}.*"))
-        matches = [m for m in matches if m.suffix != ".json"]
+        video_exts = {".mp4", ".webm", ".mov", ".avi", ".mkv", ".m4v"}
+        matches = [m for m in self.s.videos_dir.glob(f"{video_id}.*") if m.suffix.lower() in video_exts]
         if not matches:
             raise FileNotFoundError(video_id)
         return matches[0]

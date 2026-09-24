@@ -64,6 +64,8 @@ risk:
   escalation_horizon_s: 60
   density_levels: {caution: 2.0, high: 4.0, critical: 5.0}
   crowd_pressure_turbulence: 0.02
+  occupancy_full_density: 1.0   # p/m²: motion-pattern features count fully from this density up
+  occupancy_gated: [counterflow_index, flow_instability]
   temporal:
     arch: "tcn"                 # or "lstm"
     seq_len: 30

@@ -150,3 +150,29 @@ def segments_intersect(p1: np.ndarray, p2: np.ndarray, q1: np.ndarray, q2: np.nd
     d1, d2 = orient(q1, q2, p1), orient(q1, q2, p2)
     d3, d4 = orient(p1, p2, q1), orient(p1, p2, q2)
     return (d1 * d2 < 0) and (d3 * d4 < 0)
+
+
+class VenueGeometry:
+    """Convenience wrapper for sampling and querying venue geometry."""
+
+    def __init__(self, venue: Venue) -> None:
+        self.venue = venue
+        self.locator = ZoneLocator(venue)
+
+    def sample_zone(
+        self,
+        zone_id: str,
+        count: int,
+        min_dist: float = 0.35,
+        rng: np.random.Generator | None = None,
+    ) -> np.ndarray:
+        if count <= 0:
+            return np.zeros((0, 2), dtype=np.float32)
+        try:
+            z = self.venue.zone(zone_id)
+        except Exception:
+            return np.zeros((0, 2), dtype=np.float32)
+        poly = zone_polygon(z)
+        rng = rng or np.random.default_rng(0)
+        return sample_points_in_polygon(poly, count, min_spacing=min_dist, rng=rng)
+

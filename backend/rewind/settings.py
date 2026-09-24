@@ -121,6 +121,8 @@ class RiskSettings(BaseModel):
     crowd_pressure_turbulence: float = 0.02
     temporal: TemporalSettings = Field(default_factory=TemporalSettings)
     models_dir: str = "data/models"
+    occupancy_full_density: float = 1.0
+    occupancy_gated: list[str] = Field(default_factory=lambda: ["counterflow_index", "flow_instability"])
 
     @model_validator(mode="after")
     def _weights_sum_to_one(self) -> RiskSettings:
