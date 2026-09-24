@@ -1,0 +1,660 @@
+{
+  "venue_id": "demo_venue",
+  "name": "Demo Plaza (30 m × 20 m)",
+  "bounds": [
+    {
+      "x": 0.0,
+      "y": 0.0
+    },
+    {
+      "x": 30.0,
+      "y": 20.0
+    }
+  ],
+  "zones": [
+    {
+      "zone_id": "A1",
+      "name": "Zone A1",
+      "polygon": [
+        {
+          "x": 0.0,
+          "y": 0.0
+        },
+        {
+          "x": 10.0,
+          "y": 0.0
+        },
+        {
+          "x": 10.0,
+          "y": 6.6667
+        },
+        {
+          "x": 0.0,
+          "y": 6.6667
+        }
+      ],
+      "kind": "floor"
+    },
+    {
+      "zone_id": "A2",
+      "name": "Zone A2",
+      "polygon": [
+        {
+          "x": 10.0,
+          "y": 0.0
+        },
+        {
+          "x": 20.0,
+          "y": 0.0
+        },
+        {
+          "x": 20.0,
+          "y": 6.6667
+        },
+        {
+          "x": 10.0,
+          "y": 6.6667
+        }
+      ],
+      "kind": "entry"
+    },
+    {
+      "zone_id": "A3",
+      "name": "Zone A3",
+      "polygon": [
+        {
+          "x": 20.0,
+          "y": 0.0
+        },
+        {
+          "x": 30.0,
+          "y": 0.0
+        },
+        {
+          "x": 30.0,
+          "y": 6.6667
+        },
+        {
+          "x": 20.0,
+          "y": 6.6667
+        }
+      ],
+      "kind": "floor"
+    },
+    {
+      "zone_id": "B1",
+      "name": "Zone B1",
+      "polygon": [
+        {
+          "x": 0.0,
+          "y": 6.6667
+        },
+        {
+          "x": 10.0,
+          "y": 6.6667
+        },
+        {
+          "x": 10.0,
+          "y": 13.3333
+        },
+        {
+          "x": 0.0,
+          "y": 13.3333
+        }
+      ],
+      "kind": "floor"
+    },
+    {
+      "zone_id": "B2",
+      "name": "Zone B2",
+      "polygon": [
+        {
+          "x": 10.0,
+          "y": 6.6667
+        },
+        {
+          "x": 20.0,
+          "y": 6.6667
+        },
+        {
+          "x": 20.0,
+          "y": 13.3333
+        },
+        {
+          "x": 10.0,
+          "y": 13.3333
+        }
+      ],
+      "kind": "floor"
+    },
+    {
+      "zone_id": "B3",
+      "name": "Zone B3",
+      "polygon": [
+        {
+          "x": 20.0,
+          "y": 6.6667
+        },
+        {
+          "x": 30.0,
+          "y": 6.6667
+        },
+        {
+          "x": 30.0,
+          "y": 13.3333
+        },
+        {
+          "x": 20.0,
+          "y": 13.3333
+        }
+      ],
+      "kind": "floor"
+    },
+    {
+      "zone_id": "C1",
+      "name": "Zone C1",
+      "polygon": [
+        {
+          "x": 0.0,
+          "y": 13.3333
+        },
+        {
+          "x": 10.0,
+          "y": 13.3333
+        },
+        {
+          "x": 10.0,
+          "y": 20.0
+        },
+        {
+          "x": 0.0,
+          "y": 20.0
+        }
+      ],
+      "kind": "floor"
+    },
+    {
+      "zone_id": "C2",
+      "name": "Zone C2",
+      "polygon": [
+        {
+          "x": 10.0,
+          "y": 13.3333
+        },
+        {
+          "x": 20.0,
+          "y": 13.3333
+        },
+        {
+          "x": 20.0,
+          "y": 20.0
+        },
+        {
+          "x": 10.0,
+          "y": 20.0
+        }
+      ],
+      "kind": "exit"
+    },
+    {
+      "zone_id": "C3",
+      "name": "Zone C3",
+      "polygon": [
+        {
+          "x": 20.0,
+          "y": 13.3333
+        },
+        {
+          "x": 30.0,
+          "y": 13.3333
+        },
+        {
+          "x": 30.0,
+          "y": 20.0
+        },
+        {
+          "x": 20.0,
+          "y": 20.0
+        }
+      ],
+      "kind": "gate_area"
+    }
+  ],
+  "portals": [
+    {
+      "portal_id": "C_A1_A2",
+      "name": "A1–A2",
+      "from_zone": "A1",
+      "to_zone": "A2",
+      "segment": [
+        {
+          "x": 10.0,
+          "y": 0.0
+        },
+        {
+          "x": 10.0,
+          "y": 6.6667
+        }
+      ],
+      "width_m": 6.6667,
+      "is_open": true,
+      "bidirectional": true,
+      "kind": "corridor"
+    },
+    {
+      "portal_id": "C_A2_A3",
+      "name": "A2–A3",
+      "from_zone": "A2",
+      "to_zone": "A3",
+      "segment": [
+        {
+          "x": 20.0,
+          "y": 0.0
+        },
+        {
+          "x": 20.0,
+          "y": 6.6667
+        }
+      ],
+      "width_m": 6.6667,
+      "is_open": true,
+      "bidirectional": true,
+      "kind": "corridor"
+    },
+    {
+      "portal_id": "C_B1_B2",
+      "name": "B1–B2",
+      "from_zone": "B1",
+      "to_zone": "B2",
+      "segment": [
+        {
+          "x": 10.0,
+          "y": 6.6667
+        },
+        {
+          "x": 10.0,
+          "y": 13.3333
+        }
+      ],
+      "width_m": 6.6667,
+      "is_open": true,
+      "bidirectional": true,
+      "kind": "corridor"
+    },
+    {
+      "portal_id": "C_B2_B3",
+      "name": "B2–B3",
+      "from_zone": "B2",
+      "to_zone": "B3",
+      "segment": [
+        {
+          "x": 20.0,
+          "y": 6.6667
+        },
+        {
+          "x": 20.0,
+          "y": 13.3333
+        }
+      ],
+      "width_m": 6.6667,
+      "is_open": true,
+      "bidirectional": true,
+      "kind": "corridor"
+    },
+    {
+      "portal_id": "C_C1_C2",
+      "name": "C1–C2",
+      "from_zone": "C1",
+      "to_zone": "C2",
+      "segment": [
+        {
+          "x": 10.0,
+          "y": 13.3333
+        },
+        {
+          "x": 10.0,
+          "y": 20.0
+        }
+      ],
+      "width_m": 6.6667,
+      "is_open": true,
+      "bidirectional": true,
+      "kind": "corridor"
+    },
+    {
+      "portal_id": "C_C2_C3",
+      "name": "C2–C3",
+      "from_zone": "C2",
+      "to_zone": "C3",
+      "segment": [
+        {
+          "x": 20.0,
+          "y": 13.3333
+        },
+        {
+          "x": 20.0,
+          "y": 20.0
+        }
+      ],
+      "width_m": 6.6667,
+      "is_open": true,
+      "bidirectional": true,
+      "kind": "corridor"
+    },
+    {
+      "portal_id": "C_A1_B1",
+      "name": "A1–B1",
+      "from_zone": "A1",
+      "to_zone": "B1",
+      "segment": [
+        {
+          "x": 0.0,
+          "y": 6.6667
+        },
+        {
+          "x": 10.0,
+          "y": 6.6667
+        }
+      ],
+      "width_m": 10.0,
+      "is_open": true,
+      "bidirectional": true,
+      "kind": "corridor"
+    },
+    {
+      "portal_id": "C_A2_B2",
+      "name": "A2–B2",
+      "from_zone": "A2",
+      "to_zone": "B2",
+      "segment": [
+        {
+          "x": 10.0,
+          "y": 6.6667
+        },
+        {
+          "x": 20.0,
+          "y": 6.6667
+        }
+      ],
+      "width_m": 10.0,
+      "is_open": true,
+      "bidirectional": true,
+      "kind": "corridor"
+    },
+    {
+      "portal_id": "C_A3_B3",
+      "name": "A3–B3",
+      "from_zone": "A3",
+      "to_zone": "B3",
+      "segment": [
+        {
+          "x": 20.0,
+          "y": 6.6667
+        },
+        {
+          "x": 30.0,
+          "y": 6.6667
+        }
+      ],
+      "width_m": 10.0,
+      "is_open": true,
+      "bidirectional": true,
+      "kind": "corridor"
+    },
+    {
+      "portal_id": "C_B1_C1",
+      "name": "B1–C1",
+      "from_zone": "B1",
+      "to_zone": "C1",
+      "segment": [
+        {
+          "x": 6.0,
+          "y": 13.3333
+        },
+        {
+          "x": 10.0,
+          "y": 13.3333
+        }
+      ],
+      "width_m": 4.0,
+      "is_open": true,
+      "bidirectional": true,
+      "kind": "corridor"
+    },
+    {
+      "portal_id": "C_B2_C2",
+      "name": "B2–C2",
+      "from_zone": "B2",
+      "to_zone": "C2",
+      "segment": [
+        {
+          "x": 10.0,
+          "y": 13.3333
+        },
+        {
+          "x": 20.0,
+          "y": 13.3333
+        }
+      ],
+      "width_m": 10.0,
+      "is_open": true,
+      "bidirectional": true,
+      "kind": "corridor"
+    },
+    {
+      "portal_id": "C_B3_C3",
+      "name": "B3–C3",
+      "from_zone": "B3",
+      "to_zone": "C3",
+      "segment": [
+        {
+          "x": 20.0,
+          "y": 13.3333
+        },
+        {
+          "x": 30.0,
+          "y": 13.3333
+        }
+      ],
+      "width_m": 10.0,
+      "is_open": true,
+      "bidirectional": true,
+      "kind": "corridor"
+    },
+    {
+      "portal_id": "GATE_A",
+      "name": "Gate A",
+      "from_zone": "OUTSIDE",
+      "to_zone": "A2",
+      "segment": [
+        {
+          "x": 13.0,
+          "y": 0.0
+        },
+        {
+          "x": 17.0,
+          "y": 0.0
+        }
+      ],
+      "width_m": 4.0,
+      "is_open": true,
+      "bidirectional": false,
+      "kind": "gate"
+    },
+    {
+      "portal_id": "GATE_B",
+      "name": "Gate B",
+      "from_zone": "C2",
+      "to_zone": "OUTSIDE",
+      "segment": [
+        {
+          "x": 13.5,
+          "y": 20.0
+        },
+        {
+          "x": 16.5,
+          "y": 20.0
+        }
+      ],
+      "width_m": 3.0,
+      "is_open": true,
+      "bidirectional": false,
+      "kind": "gate"
+    },
+    {
+      "portal_id": "GATE_C",
+      "name": "Gate C",
+      "from_zone": "C3",
+      "to_zone": "OUTSIDE",
+      "segment": [
+        {
+          "x": 30.0,
+          "y": 15.0
+        },
+        {
+          "x": 30.0,
+          "y": 18.5
+        }
+      ],
+      "width_m": 3.5,
+      "is_open": false,
+      "bidirectional": false,
+      "kind": "gate"
+    }
+  ],
+  "walls": [
+    {
+      "a": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "b": {
+        "x": 13.0,
+        "y": 0.0
+      }
+    },
+    {
+      "a": {
+        "x": 17.0,
+        "y": 0.0
+      },
+      "b": {
+        "x": 30.0,
+        "y": 0.0
+      }
+    },
+    {
+      "a": {
+        "x": 30.0,
+        "y": 0.0
+      },
+      "b": {
+        "x": 30.0,
+        "y": 15.0
+      }
+    },
+    {
+      "a": {
+        "x": 30.0,
+        "y": 18.5
+      },
+      "b": {
+        "x": 30.0,
+        "y": 20.0
+      }
+    },
+    {
+      "a": {
+        "x": 30.0,
+        "y": 20.0
+      },
+      "b": {
+        "x": 16.5,
+        "y": 20.0
+      }
+    },
+    {
+      "a": {
+        "x": 13.5,
+        "y": 20.0
+      },
+      "b": {
+        "x": 0.0,
+        "y": 20.0
+      }
+    },
+    {
+      "a": {
+        "x": 0.0,
+        "y": 20.0
+      },
+      "b": {
+        "x": 0.0,
+        "y": 0.0
+      }
+    },
+    {
+      "a": {
+        "x": 0.0,
+        "y": 13.3333
+      },
+      "b": {
+        "x": 6.0,
+        "y": 13.3333
+      }
+    }
+  ],
+  "sources": [
+    "A2"
+  ],
+  "sinks": [
+    "C2",
+    "C3"
+  ],
+  "calibration": {
+    "image_points": [
+      {
+        "x": 160.0,
+        "y": 40.0
+      },
+      {
+        "x": 1120.0,
+        "y": 40.0
+      },
+      {
+        "x": 1120.0,
+        "y": 680.0
+      },
+      {
+        "x": 160.0,
+        "y": 680.0
+      },
+      {
+        "x": 640.0,
+        "y": 360.0
+      }
+    ],
+    "world_points": [
+      {
+        "x": 0.0,
+        "y": 0.0
+      },
+      {
+        "x": 30.0,
+        "y": 0.0
+      },
+      {
+        "x": 30.0,
+        "y": 20.0
+      },
+      {
+        "x": 0.0,
+        "y": 20.0
+      },
+      {
+        "x": 15.0,
+        "y": 10.0
+      }
+    ]
+  }
+}
