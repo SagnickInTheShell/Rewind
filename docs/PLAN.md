@@ -77,3 +77,16 @@ Each phase ends with its acceptance checks, a report, and a commit (`phase-N: ..
   - `make` is not installed on the dev machine. `scripts/dev.ps1` mirrors the targets.
   - Ports 5173 and 5174 are used by other local apps, so Vite picks the next free port in local dev. Docker binds 5173 when it is free.
   - The Docker image uses CPU torch; GPU is available via the `gpu` profile.
+
+### Phase 1 — Contracts ✅
+- **Built:**
+  - All pydantic contracts in `rewind/schemas/`: video, venue, perception (+ overlay frame), features, risk and explanation, events and timeline, simulation (+ status and comparison), validation and strategy, runs and jobs.
+  - Mirrored TypeScript types in `frontend/src/types/index.ts`.
+  - `scripts/gen_data_contracts.py` → `docs/DATA_CONTRACTS.md`.
+  - Deterministic fixture factories for every contract: `rewind/fixtures.py` and `frontend/src/lib/fixtures.ts`.
+  - First reusable visuals: `RiskChart`, `EventList`, `CausalChain`, `TwinRenderer`/`TwinCanvas`, UI primitives, colour and format helpers.
+  - A `/dev/fixtures` page that renders the timeline, risk and twin from fixtures.
+- **Tests:**
+  - Backend: 25 passed (JSON round-trip for every contract, bounds, intervention validation, rejection of interventions before `t0`).
+  - Frontend: 10 passed (fixture rendering, colour mapping, time formatting, twin transform).
+- **Additive fields beyond Section 5:** `VideoMeta.synthetic`, `ScenarioResult.name` and `interventions`, and ValidationReport UI context (`calibration_window`, `validation_window`, `worst_zone`, observed/simulated series). Recorded in DECISIONS.md.

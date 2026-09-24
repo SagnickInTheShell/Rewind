@@ -3,6 +3,7 @@ import { TopBar } from "./components/ui/TopBar";
 import UploadPage from "./pages/UploadPage";
 import AnalysisPage from "./pages/AnalysisPage";
 import RewindPage from "./pages/RewindPage";
+import FixturesPage from "./pages/FixturesPage";
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
           <Route path="/" element={<UploadPage />} />
           <Route path="/analysis" element={<AnalysisPage />} />
           <Route path="/rewind" element={<RewindPage />} />
+          <Route path="/dev/fixtures" element={<FixturesPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
