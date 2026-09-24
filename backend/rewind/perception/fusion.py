@@ -58,9 +58,9 @@ def fuse_zone(*, count_det: float, count_map: float, area_m2: float, track_vecto
         vectors, vsrc, curl = np.zeros((0, 2)), "none", 0.0
 
     source: FeatureSource
-    if vsrc == "tracks" and w == 0.0:
+    if vsrc in ("tracks", "none") and w == 0.0:
         source = "tracks"
-    elif vsrc == "flow" and w >= 1.0:
+    elif vsrc in ("flow", "none") and w >= 1.0:
         source = "density"
     else:
         source = "fused"

@@ -134,3 +134,15 @@ Each phase ends with its acceptance checks, a report, and a commit (`phase-N: ..
 - **Known issues:**
   - The CSRNet path is verified only with random weights, because no licensed weights are bundled.
   - YOLO accuracy on real footage depends on the camera; see `data/models/README.md`.
+
+### Phase 4 — Features ✅
+- **Built:**
+  - `crowd_metrics.py`: pure functions for speed stats, velocity variance, dominant direction (robust to bidirectional flow), speed-weighted direction entropy, counterflow index, flow instability, bottleneck pressure, crowd pressure (Helbing 2007) and portal flux.
+  - `zone_features.py`: `FeatureEngine` (raw window rows, then instability, causal smoothing and range enforcement), `downstream_capacity`, video window assembly (fusion per zone per 1 s window, track-transition or portal-flux in/outflow) and `ZoneTimeseries` conversion.
+  - Analysis stage `features` → `features.parquet` + `features_meta.json`.
+- **Acceptance:**
+  - Vector-field tests: uniform flow gives entropy 0 and counterflow 0; 50/50 opposing streams give counterflow ≈ 0.5; random directions give entropy ≈ 1.
+  - Hypothesis property tests keep entropy and counterflow within 0..1.
+  - The 30 s clip gives `features.parquet` with 270 rows (9 zones × 30 s). A2 inflow ≈ 3.5–4 p/s against a scripted 4.2 p/s.
+- **Tests:** 89 backend passing.
+- **Known issue:** `mypy` reports 2 forward references to `run_risk` and `run_reconstruction` until Phases 5–6 land.
