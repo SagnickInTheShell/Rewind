@@ -126,7 +126,7 @@ Open **`http://localhost:5173`** (or the port indicated in Vite output) and clic
 
 ## 7. Ethical Positioning & Privacy by Design
 
-- **Decision Support**: REWIND does **not** claim to "predict stampedes" or "prevent disasters". The system identifies escalating risk patterns in crowd dynamics and estimates how interventions could change modelled outcomes under specified assumptions.
+- **Decision Support**: REWIND does **not** claim to foresee mass surges or eliminate incidents. The system identifies escalating risk patterns in crowd dynamics and estimates how interventions could change modelled outcomes under specified assumptions.
 - **Caveat**: All outputs carry the mandatory notice: *"Simulation output under modelled assumptions. Not a guarantee of real-world outcomes. Intended to support, not replace, trained crowd-safety professionals."*
 - **Privacy**: No facial recognition, biometric identity extraction, or cross-camera tracking is performed. Track IDs are anonymous and scoped strictly to a single processing run. Privacy head/face blurring is enabled by default on exports.
 
