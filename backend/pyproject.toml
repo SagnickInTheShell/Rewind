@@ -40,7 +40,6 @@ dev = [
   "httpx>=0.27",
   "ruff>=0.4",
   "mypy>=1.9",
-  "pandas-stubs",
   "types-PyYAML",
   "hypothesis>=6.100",
 ]

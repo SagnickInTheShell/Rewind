@@ -146,3 +146,19 @@ Each phase ends with its acceptance checks, a report, and a commit (`phase-N: ..
   - The 30 s clip gives `features.parquet` with 270 rows (9 zones × 30 s). A2 inflow ≈ 3.5–4 p/s against a scripted 4.2 p/s.
 - **Tests:** 89 backend passing.
 - **Known issue:** `mypy` reports 2 forward references to `run_risk` and `run_reconstruction` until Phases 5–6 land.
+
+### Phase 5 — Physics risk, states, explanations ✅
+- **Built:**
+  - `physics_scorer.py`: saturating normalisation, weighted sum, exact contribution matrix.
+  - `states.py`: hysteresis + dwell debounce + overrides. The crowd-pressure override is gated by density (D20, D21).
+  - `ensemble.py`: physics/temporal/XGBoost combination with per-row renormalisation when a model is missing; per-zone states; global worst-zone series.
+  - `ml_scoring.py`: loads the trained models if present (Phase 11).
+  - `explain/contributions.py`: exact physics contributions with shares, plus a precomputed `explanations.parquet`.
+  - `explain/narrator.py`: hedged templates that give the zone label with the nearby gate, top-2 contributors with 30 s trends, and a bottleneck sentence; banned-phrase checker.
+  - Analysis stage `risk` → `risk.parquet`, `global_risk.parquet`, `explanations.parquet`.
+- **Acceptance:**
+  - Score is monotone in every feature, bounded in 0..1 (property test), and the contributions sum exactly to the score.
+  - Noisy scores around a threshold give ≤ 2 state changes, against 22+ without hysteresis and debounce.
+  - Narratives exist for every (t, zone), for example: "Modelled risk in Zone B2 (near Gate B) is CRITICAL, mainly because crowd pressure … while density climbed from 4.3 to 5.1 people/m². Bottleneck pressure on the way out towards Gate B is an estimated 2.1× its capacity."
+  - A language test scans the frontend, README and docs for Section 13 banned phrases.
+- **Tests:** 130 backend passing.
