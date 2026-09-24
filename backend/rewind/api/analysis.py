@@ -18,6 +18,7 @@ from rewind.schemas.features import ZoneFeatures
 from rewind.schemas.perception import OverlayFrame
 from rewind.schemas.risk import Explanation, GlobalRiskPoint, RiskPoint, RiskSeries
 from rewind.schemas.run import CreateRunRequest, CreateRunResponse, JobStatus, RunMeta
+from rewind.schemas.venue import Venue
 from rewind.storage.run_store import read_model
 
 router = APIRouter(tags=["runs"])
@@ -63,6 +64,14 @@ def _require(run_id: str, artefact: str) -> None:
     require_run(st, run_id)
     if not st.exists(run_id, artefact):
         raise ApiError(409, "not_ready", f"'{artefact}' is not available yet for run '{run_id}'")
+
+
+@router.get("/runs/{run_id}/venue", response_model=Venue,
+            summary="The zones this run was analysed with (may be an auto-calibrated camera grid)")
+def get_run_venue(run_id: str) -> Venue:
+    st = store()
+    require_run(st, run_id)
+    return Venue.model_validate_json(st.path(run_id, "venue.json").read_text(encoding="utf-8"))
 
 
 @router.get("/runs/{run_id}/features", response_model=list[ZoneFeatures], summary="Zone feature rows")

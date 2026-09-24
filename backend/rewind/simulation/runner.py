@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
@@ -12,8 +12,6 @@ from rewind.schemas.features import ZoneTimeseries
 from rewind.schemas.risk import RiskState
 from rewind.schemas.simulation import (
     BASELINE_ID,
-    Comparison,
-    ComparisonRow,
     ScenarioMetrics,
     ScenarioResult,
     ScenarioSpec,
@@ -38,7 +36,7 @@ class SimulationRunner:
     def run(self, req: SimulationRequest, progress=None) -> list[ScenarioResult]:
         meta = self.store.load_meta(req.run_id)
         venue_path = self.settings.venues_dir / f"{meta.venue_id}.json"
-        with open(venue_path, "r", encoding="utf-8") as f:
+        with open(venue_path, encoding="utf-8") as f:
             venue = Venue.model_validate_json(f.read())
 
         # Read reconstructed run features at t0

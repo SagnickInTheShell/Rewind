@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import type { RiskPoint, Venue, ZoneFeatures } from "../../types";
 import { riskColor } from "../../lib/colors";
 import { centroid, groupBy, valueAt } from "../../lib/series";
+import { fmtDensity } from "../../lib/format";
 
 interface Props {
   venue: Venue;
@@ -58,7 +59,7 @@ export function ZoneGrid({ venue, risk, features, t, selectedZone, onSelect, onH
               {z.zone_id}
             </text>
             <text x={cen.x} y={cen.y + fs * 0.85} textAnchor="middle" fontSize={fs * 0.72} fill="#E6EDF3" fontFamily="JetBrains Mono">
-              {fp ? `${fp.density.toFixed(1)}/m²` : "–"}
+              {fp ? `${Math.round(fp.count)} ppl · ${fmtDensity(fp.density)}/m²` : "–"}
             </text>
           </g>
         );

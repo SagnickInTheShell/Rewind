@@ -1,6 +1,7 @@
 // Framework-free renderer for the video overlay (tracks, heatmap, zone grid, flow arrows).
 import type { OverlayFrame } from "../../types";
 import { riskColor, viridisRgb } from "../../lib/colors";
+import { fmtDensity } from "../../lib/format";
 import type { OverlayToggles } from "../../store";
 
 export interface OverlayDrawOptions extends OverlayToggles {
@@ -72,7 +73,7 @@ export class OverlayRenderer {
         g.stroke();
         const cx = z.polygon_px.reduce((a, p) => a + p[0], 0) / z.polygon_px.length;
         const cy = z.polygon_px.reduce((a, p) => a + p[1], 0) / z.polygon_px.length;
-        const label = `${z.zone_id} · ${z.density.toFixed(1)}/m²`;
+        const label = `${z.zone_id} · ${Math.round(z.count)} ppl · ${fmtDensity(z.density)}/m²`;
         const mode = z.mode === "sparse" ? "sparse: tracking" : "dense: density+flow";
         g.font = `600 ${14 * px}px Inter, sans-serif`;
         const w = Math.max(g.measureText(label).width, g.measureText(mode).width) + 12 * px;

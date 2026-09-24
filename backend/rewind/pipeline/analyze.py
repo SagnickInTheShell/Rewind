@@ -118,6 +118,36 @@ class AnalysisPipeline:
         self.store.write_df(self.run_id, "track_boxes", boxes)
         self.meta.methods.update({"detector": dname, "tracker": tname, "camera_view": self.ctx.camera_view})
 
+    def _check_calibration(self) -> None:
+        """After detection: verify the venue calibration fits the camera; otherwise auto-calibrate.
+
+        People whose ground point lies outside the floor plan are never counted. When most detections
+        fall outside, the run switches to an auto-calibrated camera grid and labels density as ESTIMATED.
+        """
+        from rewind.pipeline.perception_stage import check_calibration, trace_frames
+
+        det = self.store.read_df(self.run_id, "detections")
+        if "calibration" not in self.meta.methods or self.force:
+            chk = check_calibration(self.ctx, det)
+            self.meta.methods["calibration_fit"] = f"{chk.fit:.0%} of {chk.n} detections inside plan"
+            self.meta.methods["calibration"] = chk.label
+            self.meta.methods["density_basis"] = chk.density_basis
+            if chk.note and chk.note not in self.meta.notes:
+                self.meta.notes.append(chk.note)
+            if chk.venue is not None:
+                original = self.store.path(self.run_id, "venue_original.json")
+                if not original.exists():
+                    original.write_text(self.store.path(self.run_id, "venue.json").read_text(encoding="utf-8"),
+                                        encoding="utf-8")
+                write_json(self.store.path(self.run_id, "venue.json"), chk.venue)
+                self.venue = chk.venue
+                self._ctx = None  # rebuild masks / homography for the new zones
+            self._save_meta()
+            log.info("calibration check", extra={"kv": {"run": self.run_id, "fit": round(chk.fit, 3),
+                                                        "calibration": chk.label}})
+        if self.s.perception.debug_trace:
+            trace_frames(self.ctx, det, self.store.read_df(self.run_id, "track_boxes"))
+
     def _track(self, st: Stage) -> None:
         boxes = self.store.read_df(self.run_id, "track_boxes")
         tracks = stage_trajectories(self.ctx, boxes)
@@ -177,9 +207,41 @@ class AnalysisPipeline:
                                                          "secs": self.meta.timings_s[st.key]}})
                 self._done_weight += st.weight
                 self._report(st, 0.0, f"{st.label}: done")
+                if st.key == "detect":
+                    self._check_calibration()
                 if until == st.key:
                     break
-            self.meta.status = "DONE"
+
+            # Fail-safe check: raw detections alone are not sufficient for crowd analysis.
+            # Require observations across multiple frames and at least one usable trajectory.
+            det_df = (
+                self.store.read_df(self.run_id, "detections")
+                if self.store.exists(self.run_id, "detections")
+                else None
+            )
+            track_df = (
+                self.store.read_df(self.run_id, "tracks")
+                if self.store.exists(self.run_id, "tracks")
+                else None
+            )
+            detections_ok = (
+                det_df is not None
+                and len(det_df) >= 3
+                and det_df["t"].nunique() >= 2
+            )
+            tracks_ok = (
+                track_df is not None
+                and not track_df.empty
+                and track_df["track_id"].nunique() >= 1
+                and track_df["t"].nunique() >= 2
+            )
+            if not detections_ok or not tracks_ok:
+                self.meta.status = "INCOMPLETE"
+                note = "Insufficient detection or tracking data for reliable crowd analysis."
+                if note not in self.meta.notes:
+                    self.meta.notes.append(note)
+            else:
+                self.meta.status = "DONE"
         except Exception:
             self.meta.status = "FAILED"
             self._save_meta()

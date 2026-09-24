@@ -127,7 +127,7 @@ class JobManager:
         t0 = time.perf_counter()
         while time.perf_counter() - t0 < timeout:
             st = self.get(job_id)
-            if st and st.state in ("DONE", "FAILED"):
+            if st and st.state in ("DONE", "FAILED", "INCOMPLETE"):
                 return st
             time.sleep(0.05)
         raise TimeoutError(job_id)

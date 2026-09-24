@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
-from rewind.schemas.simulation import Intervention, ScenarioSpec
 from rewind.simulation.macro_flow import MacroFlowSimulator
 from rewind.simulation.social_force import SocialForceParams, step_social_force
 from rewind.simulation.spatial_hash import SpatialHash2D

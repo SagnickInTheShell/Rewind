@@ -87,6 +87,7 @@ export const api = {
     request<CreateRunResponse>("/runs", { method: "POST", body: JSON.stringify({ video_id, venue_id, force, sensitive }) }),
   listRuns: () => request<RunMeta[]>("/runs"),
   getRun: (id: string) => request<RunMeta>(`/runs/${id}`),
+  getRunVenue: (id: string) => request<Venue>(`/runs/${id}/venue`),
   getFeatures: (id: string, zone?: string, t_from?: number, t_to?: number) =>
     request<ZoneFeatures[]>(`/runs/${id}/features${q({ zone, t_from, t_to })}`),
   getRisk: (id: string) => request<RiskSeries>(`/runs/${id}/risk`),

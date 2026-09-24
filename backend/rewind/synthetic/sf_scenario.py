@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+
 from rewind.schemas.venue import Venue
 from rewind.synthetic.render import Snapshot
 from rewind.synthetic.scripted import ScriptedConfig, ScriptedCrowd

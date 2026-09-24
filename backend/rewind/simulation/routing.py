@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import networkx as nx
 import numpy as np
+
 from rewind.schemas.venue import Venue
 from rewind.venue.graph import VenueGraph
 

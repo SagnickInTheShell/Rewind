@@ -63,7 +63,10 @@ class OverlayIndex:
             f = store.read_df(run_id, "features")
             for z, g in f.groupby("zone_id"):
                 g = g.sort_values("t")
-                modes = ["sparse" if s == "tracks" else "dense" for s in g["source"]]
+                # sparse/dense follows the hybrid blend weight of the observed density, not the feature source
+                p = settings.perception
+                modes = ["sparse" if blend_weight(d, p.hybrid_switch_density, p.hybrid_blend_band) < 0.5 else "dense"
+                         for d in g["density"]]
                 self.zone_vals[str(z)] = (g["t"].to_numpy(), g["density"].to_numpy(), g["count"].to_numpy(), modes)
         elif store.exists(run_id, "density_zone"):
             d = store.read_df(run_id, "density_zone")

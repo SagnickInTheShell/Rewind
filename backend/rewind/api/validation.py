@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-import json
-from pydantic import BaseModel, Field
 from fastapi import APIRouter
+from pydantic import BaseModel, Field
 
 from rewind.api.deps import store
 from rewind.api.errors import ApiError, not_found
-from rewind.pipeline.jobs import get_jobs
 from rewind.schemas.validation import ValidationReport
 from rewind.validation.replay import compute_validation_report
 
@@ -39,7 +37,7 @@ def get_validation(run_id: str) -> ValidationReport:
     st = store()
     val_file = st.run_dir(run_id) / "validation.json"
     if val_file.exists():
-        with open(val_file, "r", encoding="utf-8") as f:
+        with open(val_file, encoding="utf-8") as f:
             return ValidationReport.model_validate_json(f.read())
     # Compute on the fly if not cached
     if st.exists(run_id, "features"):

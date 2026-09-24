@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { useHealth, useRisk, useRun, useTimeline, useVenue, useFeatures } from "../api/hooks";
+import { useHealth, useRisk, useRun, useTimeline, useRunVenue, useFeatures } from "../api/hooks";
 import { useSession, useTimeStore } from "../store";
 import { VideoPlayer } from "../components/video/VideoPlayer";
 import { ZoneGrid } from "../components/zones/ZoneGrid";
@@ -17,7 +17,7 @@ import type { IncidentEvent } from "../types";
 export default function AnalysisPage() {
   const runId = useSession((s) => s.runId);
   const { data: run } = useRun(runId, true);
-  const { data: venue } = useVenue(run?.venue_id);
+  const { data: venue } = useRunVenue(runId);
   const ready = run?.status === "DONE";
   const { data: risk } = useRisk(ready ? runId : null);
   const { data: timeline } = useTimeline(ready ? runId : null);
@@ -34,6 +34,9 @@ export default function AnalysisPage() {
   const g = risk?.global_risk ?? [];
   const now = valueAt(g, currentTime, (p) => p.t);
   const explainZone = selectedZone ?? now?.worst_zone ?? null;
+  const currentFeature = explainZone
+    ? valueAt(features?.filter((f) => f.zone_id === explainZone) ?? [], currentTime, (f) => f.t)
+    : undefined;
 
   useEffect(() => {
     // start on the first escalation so the first view is meaningful
@@ -58,6 +61,18 @@ export default function AnalysisPage() {
     );
   }
   if (!run || !venue) return <Empty>Loading run…</Empty>;
+  if (run.status === "INCOMPLETE") {
+    return (
+      <Empty>
+        <div className="flex max-w-lg flex-col gap-2 text-center">
+          <p className="text-lg font-semibold text-risk-medium">ANALYSIS INCOMPLETE</p>
+          <p>Insufficient tracking data for reliable crowd analysis. This run is not classified as low risk.</p>
+          {run.notes.map((note) => <p key={note} className="text-sm text-muted">{note}</p>)}
+          <Link to="/" className="mt-2 text-accent underline">Upload another video</Link>
+        </div>
+      </Empty>
+    );
+  }
   if (!ready) return <Empty>Analysis is {run.status.toLowerCase()}… progress is shown on the Upload page.</Empty>;
 
   return (
@@ -91,6 +106,28 @@ export default function AnalysisPage() {
           </Card>
           <ExplanationPanel runId={run.run_id} t={currentTime} zone={explainZone} shapAvailable={shapAvailable} />
         </div>
+
+        <Card title="Crowd dynamics" right={<span className="text-xs text-muted">derived from tracked video observations</span>}>
+          {currentFeature ? (
+            <div className="flex flex-col gap-2">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+                <Metric label="People" value={currentFeature.count.toFixed(0)} />
+                <Metric label="Density" value={`${currentFeature.density.toFixed(2)}/m²`} />
+                <Metric label="Speed" value={`${currentFeature.mean_speed.toFixed(2)} m/s`} />
+                <Metric label="Counterflow" value={currentFeature.counterflow_index.toFixed(2)} />
+                <Metric label="Bottleneck" value={currentFeature.bottleneck_pressure.toFixed(2)} />
+              </div>
+              <p className="text-sm text-muted">
+                {now?.state === "LOW"
+                  ? "Movement is currently within the observed baseline."
+                  : "Potential escalation detected; review the contributing movement and congestion indicators."}{" "}
+                These are indicators derived from the uploaded footage, not physical force measurements or guaranteed predictions.
+              </p>
+            </div>
+          ) : (
+            <Empty>Waiting for usable crowd observations.</Empty>
+          )}
+        </Card>
       </div>
 
       <Card
@@ -129,6 +166,15 @@ export default function AnalysisPage() {
           </div>
         </Card>
       </div>
+    </div>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded border border-border bg-panel/50 p-2">
+      <div className="text-xs text-muted">{label}</div>
+      <div className="num mt-1 text-lg font-semibold">{value}</div>
     </div>
   );
 }

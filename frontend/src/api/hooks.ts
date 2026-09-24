@@ -13,6 +13,8 @@ export const useRun = (id: string | null | undefined, refetchWhileRunning = fals
     enabled: !!id,
     refetchInterval: (q) => (refetchWhileRunning && q.state.data?.status === "RUNNING" ? 2000 : false),
   });
+export const useRunVenue = (id: string | null | undefined) =>
+  useQuery({ queryKey: ["run-venue", id], queryFn: () => api.getRunVenue(id!), enabled: !!id });
 export const useRisk = (id: string | null | undefined) =>
   useQuery({ queryKey: ["risk", id], queryFn: () => api.getRisk(id!), enabled: !!id, staleTime: Infinity });
 export const useTimeline = (id: string | null | undefined) =>

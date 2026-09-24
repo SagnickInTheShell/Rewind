@@ -15,6 +15,14 @@ export function fmtNum(v: number | null | undefined, digits = 2): string {
   return v.toFixed(digits);
 }
 
+/** Density with enough precision to be meaningful for sparse scenes (0.053 rather than 0.1 or 0.0). */
+export function fmtDensity(d: number | null | undefined): string {
+  if (d == null || !Number.isFinite(d)) return "–";
+  if (d < 0.1) return d.toFixed(3);
+  if (d < 1) return d.toFixed(2);
+  return d.toFixed(1);
+}
+
 export function fmtPct(v: number | null | undefined, digits = 0): string {
   if (v == null || !Number.isFinite(v)) return "–";
   return `${(v * 100).toFixed(digits)}%`;

@@ -1,4 +1,4 @@
-"""KDE density fallback: a normalised Gaussian at each detection's head point.
+"""KDE density fallback: a normalised Gaussian at each detection's ground (foot) point.
 
 The map sums to the number of detections; σ scales with local bbox height so distant (small)
 people get narrower kernels. Used when CSRNet weights are unavailable.
@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from rewind.perception.detector import head_points
+from rewind.perception.detector import ground_points
 
 
 class KDEDensity:
@@ -24,9 +24,11 @@ class KDEDensity:
         b = np.asarray(bboxes, dtype=np.float64).reshape(-1, 4)
         if len(b) == 0:
             return dmap
-        heads = head_points(b, self.camera_view)
+        # Kernels sit on the ground point so the map is a floor-occupancy density: zone counts then agree
+        # with detection counts (on oblique cameras heads project into a different zone than feet).
+        pts = ground_points(b, self.camera_view)
         heights = np.maximum(b[:, 3] - b[:, 1], 2.0)
-        for (hx, hy), bh in zip(heads, heights, strict=True):
+        for (hx, hy), bh in zip(pts, heights, strict=True):
             sigma = max(1.0, self.sigma_factor * bh)
             rad = int(np.ceil(3 * sigma))
             cx, cy = int(hx), int(hy)

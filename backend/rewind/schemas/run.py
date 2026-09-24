@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 from rewind.schemas.video import VideoMeta
 
-JobState = Literal["QUEUED", "RUNNING", "DONE", "FAILED"]
+JobState = Literal["QUEUED", "RUNNING", "DONE", "FAILED", "INCOMPLETE"]
 
 
 class JobStatus(BaseModel):

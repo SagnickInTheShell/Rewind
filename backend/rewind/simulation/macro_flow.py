@@ -89,7 +89,7 @@ class MacroFlowSimulator:
 
                 u, v = p.from_zone, p.to_zone
                 cap = portal_widths[p.portal_id] * 1.3
-                
+
                 # Flow from u to v
                 if u in densities and v in densities:
                     # Flow driven by density gradient and speed
@@ -121,7 +121,7 @@ class MacroFlowSimulator:
                 dir_entropy = float(np.clip(0.1 + 0.3 * (dens / 3.5), 0.05, 0.95))
                 counterflow = float(np.clip(0.05 + 0.25 * (dens / 4.0), 0.0, 0.8))
                 instability = float(np.clip(0.05 + 0.3 * (dens / 4.5), 0.0, 1.5))
-                
+
                 # Outgoing capacity
                 out_cap = sum(portal_widths[p.portal_id] * 1.3 for p in self.venue.portals if p.from_zone == z and portal_open[p.portal_id])
                 bottleneck = (zone_inflows[z] / max(out_cap, 0.1)) if out_cap > 0 else 0.0

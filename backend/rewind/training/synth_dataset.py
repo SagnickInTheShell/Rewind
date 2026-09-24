@@ -4,11 +4,9 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+
 import numpy as np
 import pandas as pd
-
-from rewind.schemas.venue import Venue
-from rewind.simulation.macro_flow import MacroFlowSimulator
 
 logger = logging.getLogger(__name__)
 

@@ -127,12 +127,13 @@ def stage_trajectories(ctx: PerceptionContext, boxes: pd.DataFrame) -> pd.DataFr
                               savgol_window=s.savgol_window, savgol_order=s.savgol_order)
 
 
-def _detection_zone_counts(ctx: PerceptionContext, dets: pd.DataFrame) -> dict[str, int]:
-    if dets.empty:
-        return {}
+def _detection_zone_counts(ctx: PerceptionContext, dets: pd.DataFrame | None) -> dict[str, int]:
+    if dets is None or dets.empty:
+        return {z.zone_id: 0 for z in ctx.venue.zones}
     gp = ground_points(dets[["x1", "y1", "x2", "y2"]].to_numpy(), ctx.camera_view)
     xs = np.clip(gp[:, 0].astype(int), 0, ctx.frame_shape[1] - 1)
     ys = np.clip(gp[:, 1].astype(int), 0, ctx.frame_shape[0] - 1)
+    # People whose ground point falls outside every zone are outside the floor plan and are not counted.
     return {z: int(m[ys, xs].sum()) for z, m in ctx.masks.items()}
 
 
@@ -236,3 +237,84 @@ def stage_flow(ctx: PerceptionContext, heat_times: np.ndarray, heat: np.ndarray,
         "data": np.array(arrow_data, dtype=np.float32).reshape(-1, 4),
     }
     return flow_df, curl_df, arrows_npz
+
+
+# ---- calibration fit ------------------------------------------------------------------------
+@dataclass
+class CalibrationCheck:
+    fit: float  # share of confident person detections whose ground point lies inside the floor plan
+    n: int
+    venue: Venue | None  # replacement (auto-calibrated) venue, or None when the venue calibration applies
+    label: str
+    density_basis: str
+    note: str | None
+
+
+def check_calibration(ctx: PerceptionContext, detections: pd.DataFrame) -> CalibrationCheck:
+    """Does the venue calibration fit this camera? If not, auto-calibrate from pedestrian heights."""
+    from rewind.calibration.auto_calibrate import (
+        AutoCalibrationError,
+        camera_grid_venue,
+        fit_height_model,
+        ground_region_top,
+        horizon_homography,
+    )
+    from rewind.calibration.homography import pixel_to_world
+    from rewind.venue.graph import validate_venue
+
+    ac = ctx.settings.perception.auto_calibration
+    det = detections[detections["conf"] >= ac.min_conf] if not detections.empty else detections
+    if det.empty:
+        return CalibrationCheck(0.0, 0, None, "venue", "calibrated", None)
+    boxes = det[["x1", "y1", "x2", "y2"]].to_numpy()
+    gp = ground_points(boxes, ctx.camera_view)
+    inside = ctx.locator.locate_many(pixel_to_world(gp, ctx.H)) >= 0
+    fit = float(inside.mean())
+    if fit >= ctx.settings.perception.calibration_min_fit or ctx.camera_view == "top_down":
+        return CalibrationCheck(fit, len(det), None, "venue", "calibrated", None)
+    msg = (f"The venue calibration does not fit this camera: only {fit:.0%} of detected people fall inside "
+           f"the floor plan.")
+    try:
+        model = fit_height_model(gp[:, 1], boxes[:, 3] - boxes[:, 1], ac.person_height_m,
+                                 min_samples=ac.min_detections)
+        H = horizon_homography(model, ctx.frame_shape[1], ac.hfov_deg)
+        y_top = ground_region_top(gp[:, 1], model, ctx.frame_shape[0])
+        venue = camera_grid_venue(H, ctx.frame_shape[1], ctx.frame_shape[0], y_top, ctx.reader.scale)
+        errs = validate_venue(venue)
+        if errs:
+            raise AutoCalibrationError("; ".join(errs))
+    except AutoCalibrationError as exc:
+        return CalibrationCheck(fit, len(det), None, "venue (does not fit camera)", "UNRELIABLE",
+                                f"{msg} Automatic calibration failed ({exc}); densities are unreliable. "
+                                f"Calibrate the camera on the Upload page.")
+    label = (f"auto from {model.n_used} pedestrian heights: camera ≈ {model.camera_height_m:.1f} m, "
+             f"horizon row {model.horizon_y:.0f}, fit R² {model.r2:.2f}")
+    note = (f"{msg} Zones are a 3×3 grid over the visible ground and density is ESTIMATED from pedestrian "
+            f"heights (camera ≈ {model.camera_height_m:.1f} m high, assumed {ac.hfov_deg:.0f}° field of view). "
+            f"Calibrate the camera on the Upload page for physical measurements.")
+    return CalibrationCheck(fit, len(det), venue, label, "ESTIMATED", note)
+
+
+# ---- debug trace ----------------------------------------------------------------------------
+def trace_frames(ctx: PerceptionContext, detections: pd.DataFrame, boxes: pd.DataFrame, every: int = 1) -> None:
+    """Log, per sampled frame: detections, active tracks, ids, ground points, world points, zones, counts."""
+    from rewind.calibration.homography import pixel_to_world
+
+    det_by_t = {round(float(t), 4): len(g) for t, g in detections.groupby("t")} if not detections.empty else {}
+    times = sorted(det_by_t)
+    box_by_t = {round(float(t), 4): g for t, g in boxes.groupby("t")} if not boxes.empty else {}
+    for i, t in enumerate(times):
+        if i % every:
+            continue
+        g = box_by_t.get(t)
+        lines = [f"FRAME {i} t={t:.1f}s person detections={det_by_t[t]} active tracks={0 if g is None else len(g)}"]
+        counts: dict[str, int] = {}
+        if g is not None:
+            gp = ground_points(g[["x1", "y1", "x2", "y2"]].to_numpy(), ctx.camera_view)
+            wd = pixel_to_world(gp, ctx.H)
+            for tid, (px, py), (wx, wy), z in zip(g["track_id"], gp, wd, ctx.locator.locate_ids(wd), strict=True):
+                zone = z or "OUTSIDE_PLAN"
+                counts[zone] = counts.get(zone, 0) + 1
+                lines.append(f"  ID {tid}: ground px ({px:.0f},{py:.0f}) world ({wx:.1f},{wy:.1f}) m zone {zone}")
+        lines.append(f"  zone counts: {counts}")
+        log.info("\n".join(lines))

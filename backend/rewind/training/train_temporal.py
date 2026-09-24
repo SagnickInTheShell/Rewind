@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset

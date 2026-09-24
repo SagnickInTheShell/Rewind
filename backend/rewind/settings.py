@@ -43,6 +43,13 @@ class FlowSettings(BaseModel):
     max_samples_per_zone: int = 200
 
 
+class AutoCalibrationSettings(BaseModel):
+    person_height_m: float = 1.7
+    hfov_deg: float = 60.0
+    min_detections: int = 30
+    min_conf: float = 0.4
+
+
 class PerceptionSettings(BaseModel):
     yolo_model: str = "yolov8s.pt"
     yolo_conf: float = 0.25
@@ -51,10 +58,13 @@ class PerceptionSettings(BaseModel):
     detector: str = "auto"
     camera_view: str = "auto"
     person_radius_m: float = 0.25
+    debug_trace: bool = False
+    calibration_min_fit: float = 0.6
+    auto_calibration: AutoCalibrationSettings = Field(default_factory=AutoCalibrationSettings)
     tracker: str = "bytetrack"
     density_model_path: str = "data/models/csrnet.pth"
     density_fallback: str = "kde"
-    kde_sigma_factor: float = 0.3
+    kde_sigma_factor: float = 0.15
     density_min_threshold: float = 0.1
     hybrid_switch_density: float = 1.5
     hybrid_blend_band: float = 0.5

@@ -14,7 +14,7 @@ from rewind.schemas.risk import RISK_ORDER, RISK_STATES, RiskState
 from rewind.settings import Settings
 from rewind.venue.graph import VenueGraph
 
-MIN_EVENT_DENSITY = 0.3  # people/m²: motion-pattern events are ignored in near-empty zones
+MIN_EVENT_DENSITY = 0.05  # people/m²: lower threshold so events register on real camera views
 
 
 @dataclass
@@ -115,7 +115,7 @@ class EventDetector:
         e, w = self.e, self.window
         t = g["t"].to_numpy()
         dens = g["density"].to_numpy()
-        occupied = dens >= MIN_EVENT_DENSITY
+        occupied = (dens >= MIN_EVENT_DENSITY) | (g["count"].to_numpy() >= 1.5)
         name = self.nar.zone_label(z)
         gate = self.nar.portal_near(z)
         out: list[RawEvent] = []

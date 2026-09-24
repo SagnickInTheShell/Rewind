@@ -86,6 +86,7 @@ class ZoneLocator:
         return out
 
     def locate_ids(self, xy: np.ndarray) -> list[str | None]:
+        """Zone id per point, or None when the point lies outside the floor plan (never snapped)."""
         return [self.zone_ids[i] if i >= 0 else None for i in self.locate_many(xy)]
 
 

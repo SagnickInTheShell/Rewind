@@ -11,15 +11,22 @@ video:
 perception:
   yolo_model: "yolov8s.pt"
   yolo_conf: 0.25
-  yolo_imgsz: 1280
+  yolo_imgsz: 640
   yolo_batch: 8
   detector: "auto"              # auto | yolo | blob  (auto: blob for synthetic top-down renders, else yolo)
   camera_view: "auto"           # auto | oblique | top_down (ground point = bbox bottom-centre or centre)
   person_radius_m: 0.25         # expected body radius, used to size blobs on top-down footage
+  debug_trace: false            # log every sampled frame: detections, track ids, ground points, zones, counts
+  calibration_min_fit: 0.6      # min share of detected people inside the floor plan for the venue calibration to apply
+  auto_calibration:             # fallback when the venue calibration does not fit the camera (density = ESTIMATED)
+    person_height_m: 1.7
+    hfov_deg: 60.0              # assumed horizontal field of view (depth scale is therefore an estimate)
+    min_detections: 30
+    min_conf: 0.4
   tracker: "bytetrack"          # or "deepsort"
   density_model_path: "data/models/csrnet.pth"
   density_fallback: "kde"       # used if weights missing
-  kde_sigma_factor: 0.3         # KDE sigma = factor * bbox height
+  kde_sigma_factor: 0.15        # KDE sigma = factor * bbox height (~ body footprint on the floor)
   density_min_threshold: 0.1    # persons/m² (coarse heat grid) below which flow samples are ignored
   hybrid_switch_density: 1.5    # p/m²: above this, trust density over detections
   hybrid_blend_band: 0.5        # linear blend width around switch point

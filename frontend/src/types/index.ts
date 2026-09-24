@@ -265,7 +265,7 @@ export interface ScenarioResult {
   metrics: ScenarioMetrics;
   interventions: Intervention[];
 }
-export type JobState = "QUEUED" | "RUNNING" | "DONE" | "FAILED";
+export type JobState = "QUEUED" | "RUNNING" | "DONE" | "FAILED" | "INCOMPLETE";
 export interface SimulationStatus {
   sim_id: string;
   run_id: string;

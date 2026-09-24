@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from typing import Any
-from fastapi import APIRouter, HTTPException, Query, Response
+
 import numpy as np
+from fastapi import APIRouter
 
 from rewind.api.deps import settings, store
 from rewind.api.errors import ApiError, not_found
@@ -74,11 +74,11 @@ def get_simulation(sim_id: str) -> SimulationStatus:
         run_id_found, sim_path = found
         sim_file = sim_path / "results.json"
         if sim_file.exists():
-            with open(sim_file, "r", encoding="utf-8") as f:
+            with open(sim_file, encoding="utf-8") as f:
                 res = [ScenarioResult.model_validate(r) for r in json.load(f)]
             req_file = sim_path / "request.json"
             if req_file.exists():
-                with open(req_file, "r", encoding="utf-8") as f:
+                with open(req_file, encoding="utf-8") as f:
                     req_obj = SimulationRequest.model_validate(json.load(f))
             else:
                 req_obj = SimulationRequest(
