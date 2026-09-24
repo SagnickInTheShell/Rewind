@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.hypothesis/
+
+# Node
+node_modules/
+frontend/dist/
+
+# Env
+.env
+
+# Data (generated / large / licensed)
+data/videos/*
+!data/videos/.gitkeep
+data/runs/*
+!data/runs/.gitkeep
+data/synthetic/*
+!data/synthetic/.gitkeep
+data/models/*
+!data/models/README.md
+!data/models/.gitkeep
+*.pt
+*.pth
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

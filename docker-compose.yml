@@ -1,0 +1,45 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports: ["8000:8000"]
+    volumes:
+      - ./data:/app/data
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      REWIND__APP__CORS_ORIGINS: '["http://localhost:5173"]'
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: frontend
+    ports: ["5173:5173"]
+    depends_on: [backend]
+    environment:
+      REWIND_BACKEND_URL: http://backend:8000
+
+  # GPU variant: docker compose --profile gpu up backend-gpu frontend
+  backend-gpu:
+    profiles: ["gpu"]
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      args:
+        TORCH_INDEX: https://download.pytorch.org/whl/cu124
+    ports: ["8000:8000"]
+    volumes:
+      - ./data:/app/data
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
